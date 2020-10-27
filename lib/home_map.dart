@@ -23,6 +23,8 @@ class _HomeMapState extends State<HomeMap> {
     latitude: -103.417576,
   );
   bool _currentPositionCamera = true;
+  bool _longPressed = true;
+  bool _showPolygons = false;
 
   @override
   Widget build(BuildContext context) {
@@ -57,12 +59,15 @@ class _HomeMapState extends State<HomeMap> {
                       color: Colors.white,
                       child: AddressSearchField(
                         country: "Mexico",
+                        city: "Guadalajara",
                         hintText: "Address",
                         noResultsText: "No results.",
                         onDone: (BuildContext dialogContext,
                             AddressPoint point) async {
                           if (point.found) {
+                            _longPressed = false;
                             _setMarker(LatLng(point.latitude, point.longitude));
+                            _longPressed = true;
                             Navigator.of(context).pop();
                           }
                         },
@@ -93,26 +98,8 @@ class _HomeMapState extends State<HomeMap> {
                           size: 40,
                         ),
                         onPressed: () {
-                          List<LatLng> polygonLatLngs = List<LatLng>();
-                          if (_longPressedMarkers.length > 1) {
-                            for (int index = 0;
-                                index < _longPressedMarkers.length;
-                                index++) {
-                              polygonLatLngs.add(_longPressedMarkers
-                                  .elementAt(index)
-                                  .position);
-                            }
-                            Polygon newPoligon = new Polygon(
-                              polygonId: PolygonId("Markers"),
-                              points: polygonLatLngs,
-                              fillColor: Colors.red,
-                              strokeColor: Colors.white,
-                              strokeWidth: 1,
-                            );
-                            _mapPolygons = Set();
-                            _mapPolygons.add(newPoligon);
-                            setState(() {});
-                          }
+                          _showPolygons = _showPolygons ? false : true;
+                          _loadPolygons();
                         }),
                   ),
                 ],
@@ -148,7 +135,9 @@ class _HomeMapState extends State<HomeMap> {
       Marker newMarker = Marker(
         markerId: MarkerId(coord.toString()),
         position: coord,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        icon: BitmapDescriptor.defaultMarkerWithHue((_longPressed)
+            ? BitmapDescriptor.hueRed
+            : BitmapDescriptor.hueYellow),
         onTap: () {
           showModalBottomSheet(
             context: context,
@@ -171,7 +160,7 @@ class _HomeMapState extends State<HomeMap> {
         },
       );
       _mapMarkers.add(newMarker);
-      _longPressedMarkers.add(newMarker);
+      if (_longPressed) _longPressedMarkers.add(newMarker);
     });
 
     _currentPositionCamera = false;
@@ -184,6 +173,7 @@ class _HomeMapState extends State<HomeMap> {
         ),
       ),
     );
+    _loadPolygons();
   }
 
   Future<void> _getCurrentPosition() async {
@@ -236,5 +226,27 @@ class _HomeMapState extends State<HomeMap> {
       return "${place.thoroughfare}, ${place.locality}";
     }
     return "No address availabe";
+  }
+
+  void _loadPolygons() {
+    List<LatLng> polygonLatLngs = List<LatLng>();
+    if (_longPressedMarkers.length > 1 && _showPolygons) {
+      for (int index = 0; index < _longPressedMarkers.length; index++) {
+        polygonLatLngs.add(_longPressedMarkers.elementAt(index).position);
+      }
+      Polygon newPoligon = new Polygon(
+        polygonId: PolygonId("Markers"),
+        points: polygonLatLngs,
+        fillColor: Colors.red,
+        strokeColor: Colors.white,
+        strokeWidth: 1,
+      );
+      _mapPolygons = Set();
+      _mapPolygons.add(newPoligon);
+      setState(() {});
+    } else {
+      _mapPolygons = Set();
+      setState(() {});
+    }
   }
 }
