@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:address_search_field/address_search_field.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -14,8 +13,6 @@ class HomeMap extends StatefulWidget {
 }
 
 class _HomeMapState extends State<HomeMap> {
-  final Completer<GoogleMapController> _googleMapController =
-      Completer<GoogleMapController>();
   Set<Marker> _mapMarkers = Set();
   GoogleMapController _mapController;
   Position _currentPosition;
@@ -107,9 +104,9 @@ class _HomeMapState extends State<HomeMap> {
 
   void _setMarker(LatLng coord) async {
     // get address
-    String _markerAddress = await _getGeolocationAddress(
-      Position(latitude: coord.latitude, longitude: coord.longitude),
-    );
+    // String _markerAddress = await _getGeolocationAddress(
+    //   Position(latitude: coord.latitude, longitude: coord.longitude),
+    // );
 
     // add marker
     setState(() {
@@ -119,10 +116,26 @@ class _HomeMapState extends State<HomeMap> {
           position: coord,
           icon:
               BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-          infoWindow: InfoWindow(
-            title: coord.toString(),
-            snippet: _markerAddress,
-          ),
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              builder: (builder) {
+                return Container(
+                  height: MediaQuery.of(context).size.height / 8,
+                  color: Colors.white,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        coord.toString(),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
         ),
       );
     });
