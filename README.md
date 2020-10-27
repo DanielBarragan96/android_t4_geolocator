@@ -1,5 +1,9 @@
 # maps_basic_example
 
+El documento de la tarea se encunetra en el siguiente [link](https://docs.google.com/document/d/1AvEZ7mBCGQHe-qtnknhvM-2LS5YBHHC6tw-1rdaM3TA/edit?usp=sharing)
+
+El video de la tarea se encuentra en el siguiente [link](https://youtu.be/Pdcy9CHvv0E)
+
 En base al ejercicio realizado en clase que se encuentra en el [repositiorio de git](https://github.com/01FC/maps_basic_example_flutter).
 
 Hacer las modificaciones necesarias para:
