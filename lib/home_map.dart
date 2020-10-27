@@ -14,6 +14,8 @@ class HomeMap extends StatefulWidget {
 
 class _HomeMapState extends State<HomeMap> {
   Set<Marker> _mapMarkers = Set();
+  Set<Marker> _longPressedMarkers = Set();
+  Set<Polygon> _mapPolygons;
   GoogleMapController _mapController;
   Position _currentPosition;
   Position _defaultPosition = Position(
@@ -44,6 +46,7 @@ class _HomeMapState extends State<HomeMap> {
                         _currentPosition.longitude,
                       ),
                     ),
+                    polygons: _mapPolygons,
                   ),
                   Positioned(
                     top: 20.0,
@@ -80,6 +83,38 @@ class _HomeMapState extends State<HomeMap> {
                           _getCurrentPosition();
                         }),
                   ),
+                  Positioned(
+                    bottom: 30,
+                    left: 50,
+                    child: IconButton(
+                        icon: Icon(
+                          Icons.app_registration,
+                          color: Colors.red,
+                          size: 40,
+                        ),
+                        onPressed: () {
+                          List<LatLng> polygonLatLngs = List<LatLng>();
+                          if (_longPressedMarkers.length > 1) {
+                            for (int index = 0;
+                                index < _longPressedMarkers.length;
+                                index++) {
+                              polygonLatLngs.add(_longPressedMarkers
+                                  .elementAt(index)
+                                  .position);
+                            }
+                            Polygon newPoligon = new Polygon(
+                              polygonId: PolygonId("Markers"),
+                              points: polygonLatLngs,
+                              fillColor: Colors.red,
+                              strokeColor: Colors.white,
+                              strokeWidth: 1,
+                            );
+                            _mapPolygons = Set();
+                            _mapPolygons.add(newPoligon);
+                            setState(() {});
+                          }
+                        }),
+                  ),
                 ],
               ),
             ),
@@ -110,34 +145,33 @@ class _HomeMapState extends State<HomeMap> {
 
     // add marker
     setState(() {
-      _mapMarkers.add(
-        Marker(
-          markerId: MarkerId(coord.toString()),
-          position: coord,
-          icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-          onTap: () {
-            showModalBottomSheet(
-              context: context,
-              builder: (builder) {
-                return Container(
-                  height: MediaQuery.of(context).size.height / 8,
-                  color: Colors.white,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        coord.toString(),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
-        ),
+      Marker newMarker = Marker(
+        markerId: MarkerId(coord.toString()),
+        position: coord,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            builder: (builder) {
+              return Container(
+                height: MediaQuery.of(context).size.height / 8,
+                color: Colors.white,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      coord.toString(),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
       );
+      _mapMarkers.add(newMarker);
+      _longPressedMarkers.add(newMarker);
     });
 
     _currentPositionCamera = false;
@@ -163,6 +197,7 @@ class _HomeMapState extends State<HomeMap> {
     // add marker
     _mapMarkers.add(
       Marker(
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
         markerId: MarkerId(_currentPosition.toString()),
         position: LatLng(
           _currentPosition.latitude,
